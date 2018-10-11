@@ -123,13 +123,13 @@ char *get_layer_string(LAYER_TYPE a)
 {
     switch(a){
         case CONVOLUTIONAL:
-            return "convolutional";
+            return "conv";
         case ACTIVE:
             return "activation";
         case LOCAL:
             return "local";
         case DECONVOLUTIONAL:
-            return "deconvolutional";
+            return "deconv";
         case CONNECTED:
             return "connected";
         case RNN:
@@ -195,7 +195,10 @@ void forward_network(network *netp)
 #endif
     network net = *netp;
     int i;
+    fprintf(stderr, "         layer    time(sec)  input(KB)   output(KB)\n");
+    double time;
     for(i = 0; i < net.n; ++i){
+        time=what_time_is_it_now();
         net.index = i;
         layer l = net.layers[i];
         if(l.delta){
@@ -206,6 +209,10 @@ void forward_network(network *netp)
         if(l.truth) {
             net.truth = l.output;
         }
+        fprintf(stderr, "%5d %10s  %f  %8lu  %8lu\n",
+            i, get_layer_string(l.type), what_time_is_it_now()-time,
+            l.batch*l.inputs*sizeof(float) / 1024,
+            l.batch*l.outputs*sizeof(float) / 1024);
     }
     calc_network_cost(netp);
 }
